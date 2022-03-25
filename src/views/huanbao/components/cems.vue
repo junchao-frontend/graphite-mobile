@@ -10,6 +10,9 @@
       <span :class="[tabHead ? '' : 'text_color']" @click="tabHead = !tabHead"
         >历史</span
       >
+      <van-dropdown-menu >
+        <van-dropdown-item @change="changeCode" v-model="value" :options="option1" />
+      </van-dropdown-menu>
     </div>
     <div>
       <roastLabel />
@@ -47,17 +50,30 @@ export default {
     roastSmoke,
     roastNo2,
     roastLabel,
-    roastTabel
+    roastTabel,
   },
   data() {
     return {
       tabHead: true,
+      value: 0,
+      option1: [
+        { text: "焙烧CEMS", value: 0 },
+        { text: "隧道窑CEMS", value: 1 },
+      ],
     };
   },
   computed: {},
   created() {},
   mounted() {},
-  methods: {},
+  methods: {
+    changeCode(value) {
+      if(value === 0) {
+          this.$store.commit('getCemsCode','130424LRTTS001')
+      } else if(value === 1) {
+          this.$store.commit('getCemsCode','130424LRTTS002')
+      }
+    }
+  },
 };
 </script>
 
@@ -80,6 +96,22 @@ export default {
   }
   .text_color {
     color: #01bb70;
+  }
+}
+/deep/ .van-dropdown-menu {
+  // margin-left: 3px;
+  display: inline-block;
+  width: 100px;
+  height: 20px;
+  .van-dropdown-menu__bar {
+    height: 20px;
+  }
+  .van-dropdown-menu__item {
+    height: 20px;
+  }
+  .van-ellipsis {
+    font-size: 14px;
+    color: #9d9d9d;
   }
 }
 </style>

@@ -3,7 +3,7 @@
     <div class="cemsLabel">
       <div class="head">
         <span class="head-left"></span>
-        <span style="margin-left: 10px">{{ code }}</span>
+        <span style="margin-left: 10px">{{ currentCode }}</span>
         <div class="head-status">状态: {{ status }}</div>
       </div>
       <div class="label-box">
@@ -20,6 +20,7 @@
 <script>
 import { getCemsLabel } from "@/api/environment/cems";
 import { getDeviceRealData } from "@/api/environment/cems";
+import { mapGetters } from 'vuex';
 export default {
   components: {},
   data() {
@@ -31,7 +32,9 @@ export default {
       labelData: []
     };
   },
-  computed: {},
+  computed: {
+    ...mapGetters(['currentCode'])
+  },
   created() {},
   mounted() {
     this.initStatus();
@@ -42,15 +45,14 @@ export default {
         _id: "61d9601597ebb3c90fed18a7",
       };
       getCemsLabel(params).then((res) => {
+        // console.log(res);
         if (res.data.code === 200) {
           const { data } = res.data;
           const roastCode = data[0].code;
           const status = data[0].status;
-          const tunnelCode = data[1].code;
           this.code = roastCode;
           this.status = status;
-          this.roastCode = roastCode;
-          this.tunnelCode = tunnelCode;
+          this.$store.commit('getCemsCode',roastCode)
           this.initLabel();
         }
       });
@@ -58,11 +60,12 @@ export default {
     initLabel() {
         const params = {
             collName: 'DataRealTimeColl',
-            deviceCode: this.code
+            deviceCode: this.currentCode
         }
         getDeviceRealData(params).then(res => {
             if(res.data.code === 200) {
                 const {data} = res.data
+                // console.log(data, 'data');
                 this.labelData = data.dataset.splice(0,8)
                 this.labelData.forEach(item => {
                     item.realData = '实时'
@@ -71,6 +74,16 @@ export default {
         })
     }
   },
+  watch: {
+    currentCode: {
+      // eslint-disable-next-line no-unused-vars
+      handler(newValue){
+        // console.log(newValue);
+        this.initLabel()
+      },
+      // immediate:true
+    }
+  }
 };
 </script>
 

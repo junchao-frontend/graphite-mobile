@@ -11,8 +11,9 @@
 </template>
 
 <script>
-import { getCemsLabel } from "@/api/environment/cems";
+// import { getCemsLabel } from "@/api/environment/cems";
 import { getMainCems } from "@/api/environment/cems";
+import { mapGetters } from "vuex";
 export default {
   components: {},
   data() {
@@ -24,138 +25,135 @@ export default {
       status: "",
       xData: [],
       yData: [],
-      unit: '',
-      cordonData: []
+      unit: "",
+      cordonData: [],
     };
   },
-  computed: {},
-  created() {},
-  mounted() {
-    this.initLabel();
+  computed: {
+    ...mapGetters(["currentCode"]),
   },
+  created() {},
+  mounted() {},
   methods: {
-      initLabel() {
-      const params = {
-        _id: "61d9601597ebb3c90fed18a7",
-      };
-      getCemsLabel(params).then((res) => {
-        if (res.data.code === 200) {
-          const { data } = res.data;
-          const roastCode = data[0].code;
-          const status = data[0].status;
-          const tunnelCode = data[1].code;
-          this.code = roastCode;
-          this.status = status;
-          this.roastCode = roastCode;
-          this.tunnelCode = tunnelCode;
-          this.initSo2Trend()
-        }
-      });
-    },
     initSo2Trend() {
-        getMainCems().then(res => {
-        if (res.data.code === 200) {
-          const data = res.data.data['焙烧CEMS-二氧化硫Zs']
-          const xData = data.time
-          const middleData = []
-          xData.forEach(item => {
-            middleData.push(item.slice(14, 16))
-          })
-          this.xData = middleData
-          this.yData = data.data
-          const cordonData = []
-          for (let i = 0; i < data.data.length; i++) {
-            cordonData.push('35')
+      getMainCems()
+        .then((res) => {
+          if (res.data.code === 200) {
+            var currentCems = "焙烧CEMS-二氧化硫Zs";
+            if (this.currentCode === "130424LRTTS001") {
+              currentCems = "焙烧CEMS-二氧化硫Zs";
+            } else if (this.currentCode === "130424LRTTS002") {
+              currentCems = "隧道窑/浸渍CEMS-二氧化硫Zs";
+            }
+            const data = res.data.data[currentCems];
+            const xData = data.time;
+            const middleData = [];
+            xData.forEach((item) => {
+              middleData.push(item.slice(14, 16));
+            });
+            this.xData = middleData;
+            this.yData = data.data;
+            const cordonData = [];
+            for (let i = 0; i < data.data.length; i++) {
+              cordonData.push("35");
+            }
+            this.cordonData = cordonData;
+            this.unit = data.unit;
+            this.initEcharts();
           }
-          this.cordonData = cordonData
-          this.unit = data.unit
-          this.initEcharts()
-        }
-      })
-        .catch(error => {
-          console.log(error)
         })
+        .catch((error) => {
+          console.log(error);
+        });
     },
-    initEcharts () {
-      const myChart = this.$echarts.init(document.getElementById('SO2'))
+    initEcharts() {
+      const myChart = this.$echarts.init(document.getElementById("SO2"));
       const option = {
         title: {
           // text: 'Temperature Change in the Coming Week'
         },
         tooltip: {
-          trigger: 'axis'
+          trigger: "axis",
         },
         grid: {
-          top: '15%',
-          bottom: '20%'
+          top: "15%",
+          bottom: "20%",
         },
         legend: {
-          top: '0',
+          top: "0",
           itemWidth: 20,
           itemHeight: 10,
           selected: {
             // 选中'系列1'
-            '二氧化硫Zs': true,
+            二氧化硫Zs: true,
             // 不选中'系列2'
-            警戒线: false
-          }
+            警戒线: false,
+          },
         },
         xAxis: {
-          type: 'category',
+          type: "category",
           boundaryGap: false,
-          data: this.xData
+          data: this.xData,
         },
         yAxis: {
-          type: 'value'
+          type: "value",
           // axisLabel: {
           //   formatter: '123'
           // }
         },
         series: [
           {
-            name: '二氧化硫Zs',
-            type: 'line',
+            name: "二氧化硫Zs",
+            type: "line",
             data: this.yData,
             showSymbol: false,
-            symbol: 'circle',
+            symbol: "circle",
             symbolSize: 6,
             zlevel: 3,
             // markPoint: {
             //   data: [{ name: '周最低', value: -2, xAxis: 1, yAxis: -1.5 }]
             // },
             markLine: {
-              symbol: 'none',
-              data: [
-                { type: 'average', name: 'Avg' }
-              ]
-            }
+              symbol: "none",
+              data: [{ type: "average", name: "Avg" }],
+            },
           },
           {
-            name: '警戒线',
-            type: 'line',
+            name: "警戒线",
+            type: "line",
             data: this.cordonData,
             showSymbol: false,
-            symbol: 'circle',
+            symbol: "circle",
             symbolSize: 6,
             zlevel: 3,
             itemStyle: {
-              color: '#ff8029'
+              color: "#ff8029",
               // borderColor: "#a3c8d8",
             },
             lineStyle: {
               normal: {
                 width: 2,
-                color: '#ff8029'
-              }
-            }
-          }
-        ]
-      }
-      option && myChart.setOption(option)
-      window.addEventListener('resize', function () {
-        myChart.resize()
-      })
-    }
+                color: "#ff8029",
+              },
+            },
+          },
+        ],
+      };
+      option && myChart.setOption(option);
+      window.addEventListener("resize", function () {
+        myChart.resize();
+      });
+    },
+  },
+  watch: {
+    currentCode: {
+      // eslint-disable-next-line no-unused-vars
+      handler(newValue) {
+        // console.log(newValue);
+        this.initSo2Trend();
+      },
+      immediate: true,
+    },
   },
 };
 </script>
@@ -164,9 +162,9 @@ export default {
 .roast-so2 {
   background-color: #f1f1f1;
 }
-#SO2{
-    width: 100%;
-    height: 250px;
+#SO2 {
+  width: 100%;
+  height: 250px;
 }
 .cemsTrend {
   background-color: #ffffff;

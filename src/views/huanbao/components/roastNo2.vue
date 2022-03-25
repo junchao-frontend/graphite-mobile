@@ -11,8 +11,8 @@
 </template>
 
 <script>
-import { getCemsLabel } from "@/api/environment/cems";
 import { getMainCems } from "@/api/environment/cems";
+import { mapGetters } from "vuex";
 export default {
   components: {},
   data() {
@@ -28,34 +28,23 @@ export default {
       cordonData: []
     };
   },
-  computed: {},
+  computed: {
+    ...mapGetters(["currentCode"]),
+  },
   created() {},
   mounted() {
-    this.initLabel();
   },
   methods: {
-      initLabel() {
-      const params = {
-        _id: "61d9601597ebb3c90fed18a7",
-      };
-      getCemsLabel(params).then((res) => {
-        if (res.data.code === 200) {
-          const { data } = res.data;
-          const roastCode = data[0].code;
-          const status = data[0].status;
-          const tunnelCode = data[1].code;
-          this.code = roastCode;
-          this.status = status;
-          this.roastCode = roastCode;
-          this.tunnelCode = tunnelCode;
-          this.initNo2Trend()
-        }
-      });
-    },
     initNo2Trend() {
         getMainCems().then(res => {
         if (res.data.code === 200) {
-          const data = res.data.data['焙烧CEMS-氮氧化物Zs']
+          var currentCems = "焙烧CEMS-氮氧化物Zs";
+            if (this.currentCode === "130424LRTTS001") {
+              currentCems = "焙烧CEMS-氮氧化物Zs";
+            } else if (this.currentCode === "130424LRTTS002") {
+              currentCems = "隧道窑/浸渍CEMS-氮氧化物Zs";
+            }
+            const data = res.data.data[currentCems];
           const xData = data.time
           const middleData = []
           xData.forEach(item => {
@@ -156,6 +145,16 @@ export default {
         myChart.resize()
       })
     }
+  },
+  watch: {
+    currentCode: {
+      // eslint-disable-next-line no-unused-vars
+      handler(newValue) {
+        // console.log(newValue);
+        this.initNo2Trend();
+      },
+      immediate: true,
+    },
   },
 };
 </script>

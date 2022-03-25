@@ -86,6 +86,7 @@
 
 <script>
 import { getDevice10Data } from "@/api/environment/cems";
+import { mapGetters } from "vuex";
 export default {
   components: {},
   data() {
@@ -98,20 +99,22 @@ export default {
       o2Arr: [],
     };
   },
-  computed: {},
+  computed: {
+      ...mapGetters(["currentCode"]),
+  },
   created() {},
   mounted() {
-    this.initTabel();
+    // this.initTabel();
   },
   methods: {
     initTabel() {
       const params = {
-        deviceCode: "130424LRTTS001",
+        deviceCode: this.currentCode,
       };
       getDevice10Data(params).then((res) => {
         if (res.data.code === 200) {
           const { data } = res.data;
-          console.log(data);
+          // console.log(data);
           const timeArr = [];
           const so2Arr = [];
           const smokeArr = [];
@@ -131,6 +134,16 @@ export default {
           this.o2Arr = o2Arr;
         }
       });
+    },
+  },
+  watch: {
+    currentCode: {
+      // eslint-disable-next-line no-unused-vars
+      handler(newValue) {
+        // console.log(newValue);
+        this.initTabel();
+      },
+      immediate: true,
     },
   },
 };
